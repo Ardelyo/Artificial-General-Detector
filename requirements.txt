@@ -1,0 +1,12 @@
+fastapi
+pydantic
+numpy
+transformers
+scipy
+pillow
+scikit-learn
+pandas
+python-docx
+matplotlib
+requests
+uvicorn
