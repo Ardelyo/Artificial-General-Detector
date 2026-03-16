@@ -1,0 +1,19 @@
+﻿==================================================
+ AGD REAL BASELINE DETECTION TESTING (No Mocking) 
+==================================================
+
+[IMAGE TEST - AI GENERATED (From Generative Model)] File: C:\Users\X1 CARBON\.gemini/antigravity/brain/7763f4e8-7f16-4110-9bc7-c32ba10ba671\ai_test_photo_1773638933192.png
+  -> Raw ELA Average Pixel Difference: 4.0862
+  -> Predicted AI Confidence Score: 61.72%
+
+[IMAGE TEST - REAL WIKIMEDIA PHOTO] File: tests/real_test_photo.png
+  -> Raw ELA Average Pixel Difference: 2.3992
+  -> Predicted AI Confidence Score: 27.98%
+
+[TEXT TEST - AI GENERATED (Consistent Lengths)] File: tests/ai_text.txt
+  -> Coefficient of Variation (CV) for Sentence Length: 0.2294
+  -> Predicted AI Confidence Score (Burstiness): 75.00%
+
+[TEXT TEST - REAL HUMAN WRITTEN (Varied Lengths)] File: tests/human_text.txt
+  -> Coefficient of Variation (CV) for Sentence Length: 0.2227
+  -> Predicted AI Confidence Score (Burstiness): 75.00%

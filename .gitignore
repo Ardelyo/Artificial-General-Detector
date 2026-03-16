@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project Temp Files
+*.log
+*.sqlite
+.DS_Store
+
+# Benchmark outputs (optional, depending if you want to track them)
+# *.csv
+# *.docx
+# *.png
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Node / JS (if using frontend)
+node_modules/
+dist/
+.next/
+out/
+build/

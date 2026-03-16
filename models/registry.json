@@ -1,0 +1,56 @@
+{
+  "models": [
+    {
+      "id": "agd-image-frequency-v1",
+      "name": "Spatial Frequency Analyzer v1",
+      "modality": "image",
+      "version": "1.0.0",
+      "description": "Analyzes the frequency domain (DFT/DCT) of an image to spot anomalies common in GAN and Diffusion-generated outputs. Sensitive to high-frequency artifacts (spectral peaks) introduced during image synthesis.",
+      "performance": {
+        "accuracy": 0.89,
+        "f1_score": 0.88,
+        "dataset": "agd-bench-image-v1"
+      },
+      "tags": ["frequency", "fourier", "diffusion", "gan"]
+    },
+    {
+      "id": "agd-video-temporal-v1",
+      "name": "Optical Flow Coherence Engine",
+      "modality": "video",
+      "version": "1.1.2",
+      "description": "Calculates optical flow vectors between frames. Highly effective against generative video models like Sora and Runway Gen-3 which often produce unnaturally smooth or disjointed micro-movements.",
+      "performance": {
+        "accuracy": 0.92,
+        "f1_score": 0.90,
+        "dataset": "agd-bench-video-core"
+      },
+      "tags": ["temporal", "flow", "sora", "runway"]
+    },
+    {
+      "id": "agd-audio-breathing-v2",
+      "name": "Micro-Pattern Breathing Detector",
+      "modality": "audio",
+      "version": "2.0.0",
+      "description": "Examines temporal micro-patterns such as inhalation, exhalation, and micro-pauses commonly missed or synthesized poorly by modern TTS systems (VALL-E, ElevenLabs).",
+      "performance": {
+        "accuracy": 0.94,
+        "f1_score": 0.91,
+        "dataset": "agd-bench-audio-human"
+      },
+      "tags": ["tts", "breathing", "elevenlabs"]
+    },
+    {
+      "id": "agd-text-stylometry-v1",
+      "name": "Stylometric N-gram Analyzer",
+      "modality": "text",
+      "version": "1.0.5",
+      "description": "Uses syntactical parsing and n-gram analysis to identify repetitive stylistic choices and vocabulary combinations preferred by LLM architectures.",
+      "performance": {
+        "accuracy": 0.85,
+        "f1_score": 0.82,
+        "dataset": "agd-bench-text-multilingual"
+      },
+      "tags": ["stylometry", "llm", "n-gram"]
+    }
+  ]
+}

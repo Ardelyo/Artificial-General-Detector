@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  orchestrator:
+    build:
+      context: ./core
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  agd-image:
+    build:
+      context: ./modules/agd-image
+    ports:
+      - "8001:8001"
+
+  agd-video:
+    build:
+      context: ./modules/agd-video
+    ports:
+      - "8002:8002"
+
+  agd-audio:
+    build:
+      context: ./modules/agd-audio
+    ports:
+      - "8003:8003"
+
+  agd-text:
+    build:
+      context: ./modules/agd-text
+    ports:
+      - "8004:8004"
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://orchestrator:8000
+    depends_on:
+      - orchestrator
