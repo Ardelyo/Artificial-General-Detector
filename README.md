@@ -1,66 +1,79 @@
-# Artificial General Detector (AGD)
-<a href="https://www.producthunt.com/posts/artificial-general-detector?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-artificial-general-detector" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=000000&theme=dark" alt="Artificial General Detector - Ultimate Multi-Modal AI Detection Framework | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+# Artificial General Detector
 
-**The ultimate open-source multi-modal forensic framework for identifying AI-generated content across text, image, audio, and video.**
+<div align="center">
 
-Developed by [OurCreativity](https://github.com/Ardelyo) · Admin: Ardelyo
+<img src="docs/agd_logo.png" alt="AGD Logo" width="120"/>
+
+**Multi-modal forensic framework for identifying AI-generated content.**  
+Text · Image · Audio · Video — 27 independent detection techniques, full interpretability.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-black?style=flat-square)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-black?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Orchestrated-black?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Made in Indonesia](https://img.shields.io/badge/Made%20in-Indonesia-cc0001?style=flat-square)](https://github.com/Ardelyo)
+
+<a href="https://www.producthunt.com/posts/artificial-general-detector?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-artificial-general-detector" target="_blank">
+  <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=000000&theme=dark" alt="Artificial General Detector on Product Hunt" width="220"/>
+</a>
+
+</div>
 
 ---
 
 ## Overview
 
-AGD is a forensic detection engine that identifies AI-generated content using **27 independent detection techniques** — 15 for images and 12 for text — combined through a weighted ensemble with confidence scoring.
+AGD is an open-source forensic detection engine that identifies AI-generated content through an ensemble of **27 independent techniques** across four modalities. Unlike single-model classifiers that produce an opaque probability score, AGD generates a full **anomaly map** — each technique returns a named, interpretable signal so human auditors understand *why* content is flagged, not merely *that* it is.
 
-Unlike black-box classifiers that output a single probability, AGD produces a full **anomaly map**: each technique returns a named score, enabling human auditors to understand *why* a sample is flagged, not just *whether* it is flagged.
+The system is built on a principle of adversarial resilience: an evasion technique that defeats one detector leaves 26 others active.
 
 <p align="center">
-  <img src="docs/figures/detection_pipeline.png" alt="AGD Detection Pipeline" width="700"/>
+  <img src="docs/figures/detection_pipeline.png" alt="AGD Detection Pipeline" width="720"/>
   <br/>
-  <em>Figure 1. AGD multi-modal detection pipeline</em>
+  <sub>Figure 1. AGD multi-modal detection pipeline</sub>
 </p>
 
 ---
 
 ## Architecture
 
+The Orchestrator API routes input by MIME type to specialized sub-modules. Each module runs its technique suite independently, then returns per-technique scores to a weighted ensemble layer that produces the master score and confidence calibration.
+
 ```
 Input (Text / Image / Audio / Video)
-        │
-        ▼
-┌──────────────────────┐
-│   Orchestrator API    │   ← FastAPI gateway, MIME routing
-│   (orchestrator/)     │
-└────────┬─────────────┘
-         │
-    ┌────┴────┬──────────┬──────────┐
-    ▼         ▼          ▼          ▼
- agd-text  agd-image  agd-audio  agd-video
-    │         │          │          │
-    ▼         ▼          ▼          ▼
- 12 tech   15 tech    4 tech     4 tech
-    │         │          │          │
-    └────┬────┴──────────┴──────────┘
-         ▼
-┌──────────────────────┐
-│  Weighted Ensemble   │   ← Per-technique scores → master score
-│  + Confidence Score  │
-└──────────────────────┘
-         │
-         ▼
-   Forensic Report
+          │
+          ▼
+  ┌───────────────────┐
+  │   Orchestrator    │   FastAPI gateway, MIME routing
+  └────────┬──────────┘
+           │
+   ┌───────┼───────────────┬──────────┐
+   ▼       ▼               ▼          ▼
+agd-text  agd-image    agd-audio  agd-video
+12 tech   15 tech       4 tech     4 tech
+   │       │               │          │
+   └───────┴───────────────┴──────────┘
+                     │
+          ┌──────────▼──────────┐
+          │   Weighted Ensemble  │
+          │  + Confidence Score  │
+          └──────────┬──────────┘
+                     │
+              Forensic Report
 ```
 
 ---
 
-## Image Forensics (15 Techniques)
+## Detection Techniques
 
-AGD performs pixel-level and frequency-level analysis to detect synthetic artifacts:
+### Image Forensics — 15 Techniques
 
-| # | Technique | Signal Detected |
-|---|-----------|-----------------|
+Pixel-level, frequency-domain, and statistical analysis to detect synthetic image artifacts.
+
+| # | Technique | Signal |
+|---|-----------|--------|
 | 1 | Pixel-Level ELA | JPEG recompression error differentials |
 | 2 | JPEG Ghost Detection | Multi-quality recompression profiling |
-| 3 | SRM Multi-Kernel (5 filters) | Camera sensor noise vs synthetic noise |
+| 3 | SRM Multi-Kernel (5 filters) | Camera sensor noise vs. synthetic noise |
 | 4 | DCT Blockwise Analysis | 8×8 block coefficient uniformity |
 | 5 | FFT Radial Power Spectrum | GAN spectral spikes / diffusion rolloff |
 | 6 | High-Frequency Energy Ratio | Over-smoothing detection |
@@ -75,24 +88,22 @@ AGD performs pixel-level and frequency-level analysis to detect synthetic artifa
 | 15 | Global Statistical Fingerprint | Per-channel skewness and kurtosis |
 
 <p align="center">
-  <img src="docs/figures/ela_comparison.png" alt="ELA Comparison: Real vs AI" width="650"/>
+  <img src="docs/figures/ela_comparison.png" alt="ELA Comparison" width="680"/>
   <br/>
-  <em>Figure 2. Error Level Analysis — Real photo (varied ELA response) vs AI-generated (uniform response)</em>
+  <sub>Figure 2. Error Level Analysis — authentic photograph (varied response) vs. AI-generated image (uniform response)</sub>
 </p>
 
----
+### Text Forensics — 12 Techniques
 
-## Text Forensics (12 Techniques)
+Token-level and document-level analysis to identify machine-generated prose.
 
-AGD performs token-level and document-level analysis to identify machine-generated text:
-
-| # | Technique | Signal Detected |
-|---|-----------|-----------------|
+| # | Technique | Signal |
+|---|-----------|--------|
 | 1 | Token-by-Token Perplexity | RoBERTa log-probability per 50-token chunk |
-| 2 | Sentence-Level RoBERTa | Per-sentence AI probability |
+| 2 | Sentence-Level RoBERTa | Per-sentence AI probability score |
 | 3 | Sliding-Window Entropy | Vocabulary diversity variation |
 | 4 | Burstiness Profile | Sentence length regularity (CV, skew, kurtosis) |
-| 5 | N-Gram Repetition Heatmap | Bigram/trigram/quadgram overlap |
+| 5 | N-Gram Repetition Heatmap | Bigram / trigram / quadgram overlap |
 | 6 | Vocabulary Fingerprinting | Zipf's law deviation, type-token ratio |
 | 7 | Stylometric Features | Word length, punctuation density, case ratios |
 | 8 | Perplexity Proxy | Word frequency rank distribution |
@@ -102,18 +113,47 @@ AGD performs token-level and document-level analysis to identify machine-generat
 | 12 | Sentence Starter Diversity | Opening word repetition patterns |
 
 <p align="center">
-  <img src="docs/figures/text_detection_visualization.png" alt="Text Detection Visualization" width="650"/>
+  <img src="docs/figures/text_detection_visualization.png" alt="Text Detection Visualization" width="680"/>
   <br/>
-  <em>Figure 3. Text forensic analysis — per-sentence scoring with metric breakdown</em>
+  <sub>Figure 3. Per-sentence scoring with full metric breakdown</sub>
 </p>
+
+### Audio Forensics — 4 Techniques
+
+`agd-audio` detects TTS vocoder artifacts via MFCC extraction, LFCC analysis, Spectral Flux profiling, and Zero-Crossing Rate statistics.
+
+### Video Forensics — 4 Techniques
+
+`agd-video` isolates AI-manipulated frames through temporal frame difference energy, gradient-based motion consistency, spatial frequency consistency, and color histogram temporal stability.
 
 ---
 
-## Audio and Video Forensics
+## Benchmark Results
 
-**Audio** (agd-audio): MFCC extraction, LFCC analysis, Spectral Flux profiling, and Zero-Crossing Rate statistics for detecting TTS vocoder artifacts.
+Evaluated on 500+ samples drawn from the HC3 dataset (text) and the CIFAKE image subset (image). AGD is compared against published detection baselines.
 
-**Video** (agd-video): Temporal frame difference energy, motion consistency analysis (gradient-based optical flow proxy), spatial frequency consistency, and color histogram temporal stability.
+<p align="center">
+  <img src="docs/figures/benchmark_plot_sota.png" alt="Benchmark Results" width="640"/>
+  <br/>
+  <sub>Figure 4. F1-Score comparison — AGD vs. published detector baselines</sub>
+</p>
+
+| Detector | Modality | Techniques | Interpretable | FPR |
+|----------|----------|:----------:|:-------------:|:---:|
+| **AGD** | Text + Image + Audio + Video | **27+** | **Yes — full breakdown** | Low |
+| GPTZero | Text | 1 (proprietary) | No | Medium |
+| ZeroGPT | Text | 1 (proprietary) | No | High |
+| CIFAKE CNN | Image | 1 (EfficientNet) | No | Low |
+| DetectGPT | Text | 1 (perturbation) | Partial | Medium |
+
+### Audio & Video Validation
+
+The Media Forensic Benchmark (`tools/media_benchmark.py`) validates sub-modalities using real-world streams (Kozco Acoustic Engineering files and Wikimedia Commons telemetry).
+
+- **Audio:** AGD differentiates natural human resonance (high spectral flux variance) from monotonic TTS proxies across MFCC and LFCC coefficients.
+- **Video:** AGD isolates temporal compression artifacts and motion inconsistencies in AI-manipulated sequences vs. authentic camera tracking.
+
+Full results: `docs/reports/AGD_Media_Forensics_Report.docx`
 
 ---
 
@@ -123,7 +163,8 @@ AGD performs token-level and document-level analysis to identify machine-generat
 
 ```bash
 # Install dependencies
-pip install fastapi pydantic numpy transformers scipy pillow scikit-learn pandas python-docx matplotlib
+pip install fastapi pydantic numpy transformers scipy pillow \
+            scikit-learn pandas python-docx matplotlib requests uvicorn
 
 # Run the Ultra-Deep Benchmark (27 techniques, full diagnostic output)
 python tools/ultra_benchmark.py
@@ -131,15 +172,23 @@ python tools/ultra_benchmark.py
 # Run the SOTA Benchmark (500 samples, comparative evaluation)
 python tools/mass_benchmark_sota.py
 
-# Run the Real-World Media Forensic Benchmark (Audio/Video streams)
+# Run the Media Forensic Benchmark (audio/video streams)
 python tools/media_benchmark.py
 
-# Generate the Official Research Paper
+# Generate the Official Research Paper (DOCX)
 python tools/generate_research_paper.py
 
-# Start any individual module
+# Start an individual module
 uvicorn modules.agd-text.main:app --port 8001
 ```
+
+**Docker (full stack):**
+
+```bash
+docker compose up
+```
+
+This starts the Orchestrator (port 8000), all four detection modules (ports 8001–8004), Redis, and the web interface (port 3000).
 
 ---
 
@@ -148,92 +197,76 @@ uvicorn modules.agd-text.main:app --port 8001
 ```
 .
 ├── docs/
-│   ├── figures/                  # Benchmark plots, detection visualizations
+│   ├── figures/                    # Benchmark plots and detection visualizations
 │   │   ├── detection_pipeline.png
 │   │   ├── ela_comparison.png
 │   │   ├── text_detection_visualization.png
 │   │   ├── benchmark_plot_sota.png
-│   │   ├── benchmark_plot.png
 │   │   ├── audio_benchmark_plot.png
 │   │   └── video_benchmark_plot.png
-│   ├── reports/                  # Generated DOCX reports and CSV data
+│   ├── reports/                    # Generated DOCX reports and CSV data
 │   │   ├── AGD_Official_Research_Paper.docx
 │   │   ├── AGD_UltraDeep_Report.docx
 │   │   ├── AGD_Media_Forensics_Report.docx
-│   │   ├── benchmark_results_sota.csv
-│   │   └── ...
+│   │   └── benchmark_results_sota.csv
 │   └── agd_logo.png
 ├── modules/
-│   ├── agd-text/main.py          # RoBERTa + 4 heuristic ensemble
-│   ├── agd-image/main.py         # ELA + FFT + SRM + color ensemble
-│   ├── agd-audio/main.py         # MFCC + LFCC + Spectral Flux + ZCR
-│   ├── agd-video/main.py         # Frame diff + motion + frequency
-│   ├── deep_image_forensics.py   # 15-technique image engine
-│   └── deep_text_forensics.py    # 12-technique text engine
+│   ├── agd-text/main.py            # RoBERTa + 4-heuristic ensemble
+│   ├── agd-image/main.py           # ELA + FFT + SRM + color ensemble
+│   ├── agd-audio/main.py           # MFCC + LFCC + Spectral Flux + ZCR
+│   ├── agd-video/main.py           # Frame diff + motion + frequency
+│   ├── deep_image_forensics.py     # 15-technique image engine
+│   └── deep_text_forensics.py      # 12-technique text engine
 ├── tools/
-│   ├── ultra_benchmark.py        # Full 27-technique evaluation
-│   ├── mass_benchmark_sota.py    # 500-sample SOTA benchmark
-│   ├── media_benchmark.py        # Audio/Video real-world validation
+│   ├── ultra_benchmark.py          # Full 27-technique evaluation
+│   ├── mass_benchmark_sota.py      # 500-sample SOTA benchmark
+│   ├── media_benchmark.py          # Audio/video real-world validation
 │   └── generate_research_paper.py
 ├── tests/
-│   ├── data/                     # Test samples (AI vs human text, images)
-│   └── results/                  # Raw output logs
-├── core/                         # Orchestrator API gateway
+│   ├── data/                       # Test samples (text, images)
+│   └── results/                    # Raw output logs
+├── core/                           # Orchestrator API gateway
+├── docker-compose.yml
+├── requirements.txt
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── LICENSE                       # MIT
+├── LICENSE
 └── README.md
 ```
 
 ---
 
-## Benchmark Results
+## Design Principles
 
-AGD was evaluated on 500+ samples (300 text, 200 image) using the HC3 dataset and CIFAKE image subset. Performance was compared against published baselines:
+**1. Transparency over black-box accuracy.**
+Every technique produces a named, interpretable score. Auditors receive a breakdown, not a verdict.
 
-<p align="center">
-  <img src="docs/figures/benchmark_plot_sota.png" alt="Benchmark Results" width="600"/>
-  <br/>
-  <em>Figure 4. F1-Score comparison — AGD vs published detector baselines</em>
-</p>
+**2. Multi-signal resilience.**
+An adversarial modification that defeats one technique leaves the remaining detectors active. There is no single attack surface.
 
-| Detector | Modality | Techniques | Interpretable | FPR |
-|----------|----------|------------|---------------|-----|
-| **AGD** | Text + Image + Audio + Video | 27+ | Yes (full breakdown) | Low |
-| GPTZero | Text | 1 (proprietary) | No | Medium |
-| ZeroGPT | Text | 1 (proprietary) | No | High |
-| CIFAKE CNN | Image | 1 (EfficientNet) | No | Low |
-| DetectGPT | Text | 1 (perturbation) | Partial | Medium |
+**3. Confidence calibration.**
+Borderline samples are flagged as uncertain rather than forced into a binary classification.
 
-### Audio & Video Forensic Validation
-
-The Media Forensic Benchmark (`tools/media_benchmark.py`) validates the sub-modalities using real-world Internet streams (Kozco Acoustic Engineering files and Wikimedia Commons telemetry):
-
-- **Audio Results**: AGD successfully differentiates natural human resonance (high spectral flux variance) from computer-synthesized monotonic TTS proxies across MFCC and LFCC coefficients.
-- **Video Results**: AGD isolates temporal compression artifacts and motion inconsistencies in AI-manipulated sequences vs. authentic camera tracking data.
-
-A detailed research paper with raw waveforms and frame analysis is generated at `docs/reports/AGD_Media_Forensics_Report.docx`.
+**4. Modality agnostic.**
+The same ensemble framework handles text, image, audio, and video through purpose-built specialized modules.
 
 ---
 
-## Key Design Principles
+## Contributing
 
-1. **Transparency over black-box accuracy.** Every technique produces a named, interpretable score.
-2. **Multi-signal resilience.** An adversarial attack that fools one detector is caught by the remaining 26.
-3. **Confidence calibration.** AGD expresses uncertainty on borderline samples rather than making overconfident predictions.
-4. **Modality agnostic.** The same ensemble framework handles text, image, audio, and video through specialized modules.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, module architecture, and pull request guidelines.
 
 ---
 
 ## References
 
-1. Solaiman, I. et al. (2019). *Release Strategies and the Social Impacts of Language Model Fine-Tuning.* OpenAI. — RoBERTa-base-openai-detector.
+1. Solaiman, I. et al. (2019). *Release Strategies and the Social Impacts of Language Model Fine-Tuning.* OpenAI.
 2. Mitchell, E. et al. (2023). *DetectGPT: Zero-Shot Machine-Generated Text Detection using Probability Curvature.* ICML 2023.
 3. Bird, J.J. & Lotfi, A. (2024). *CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images.* IEEE Access.
-4. Fridrich, J. & Kodovsky, J. (2012). *Rich Models for Steganalysis of Digital Images.* IEEE TIFS. — SRM noise residuals.
-5. Wang, S.Y. et al. (2020). *CNN-generated images are surprisingly easy to spot... for now.* CVPR 2020. — Frequency domain artifacts.
+4. Fridrich, J. & Kodovsky, J. (2012). *Rich Models for Steganalysis of Digital Images.* IEEE TIFS.
+5. Wang, S.Y. et al. (2020). *CNN-generated images are surprisingly easy to spot... for now.* CVPR 2020.
 6. Jung, T. et al. (2022). *AASIST: Audio Anti-Spoofing using Integrated Spectro-Temporal Graph Attention Networks.* ICASSP 2022.
-7. Todisco, M. et al. (2019). *ASVspoof 2019.* Interspeech. — LFCC and MFCC baselines.
+7. Todisco, M. et al. (2019). *ASVspoof 2019.* Interspeech.
 8. Frank, J. et al. (2020). *Leveraging Frequency Analysis for Deep Fake Image Recognition.* ICML 2020.
 9. Guo, C. et al. (2023). *How Close is ChatGPT to Human Experts? Comparison Corpus, Evaluation, and Detection (HC3).* arXiv.
 10. Zhong, Y. et al. (2023). *Rich and Poor Texture Contrast: A Simple yet Effective Approach for AI-Generated Image Detection.* arXiv.
@@ -242,6 +275,15 @@ A detailed research paper with raw waveforms and frame analysis is generated at 
 
 ## License
 
-MIT License. Copyright (c) 2026 OurCreativity.
+Released under the [MIT License](LICENSE).  
+Copyright © 2026 OurCreativity.
 
-See [LICENSE](LICENSE) for details.
+---
+
+<div align="center">
+
+Developed by [Ardelyo](https://github.com/Ardelyo) · [OurCreativity](https://github.com/Ardelyo)
+
+**Made in Indonesia.**
+
+</div>
