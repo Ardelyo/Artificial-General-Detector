@@ -20,10 +20,11 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 
 ROOT = Path(__file__).parent.parent
 DOCS = ROOT / "docs"
-PAPER = DOCS / "AGD_Official_Research_Paper.docx"
+PAPER = DOCS / "reports" / "AGD_Official_Research_Paper.docx"
 LOGO = DOCS / "agd_logo.png"
-PLOT_SOTA = ROOT / "benchmark_plot_sota.png"
-PLOT_ULTRA = ROOT / "benchmark_plot.png"
+PLOT_SOTA = DOCS / "figures" / "benchmark_plot_sota.png"
+PLOT_ULTRA = DOCS / "figures" / "benchmark_plot.png"
+(DOCS / "reports").mkdir(parents=True, exist_ok=True)
 
 def set_font(run, size=11, bold=False, color=None, italic=False, name="Calibri"):
     run.font.size = Pt(size)

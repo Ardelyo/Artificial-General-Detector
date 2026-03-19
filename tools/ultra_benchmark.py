@@ -10,7 +10,8 @@ import numpy as np
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-REPORT = ROOT / "AGD_UltraDeep_Report.docx"
+(ROOT / "docs" / "reports").mkdir(parents=True, exist_ok=True)
+REPORT = ROOT / "docs" / "reports" / "AGD_UltraDeep_Report.docx"
 
 # Load deep forensic engines
 def load_mod(name, path):

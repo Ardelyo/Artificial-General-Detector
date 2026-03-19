@@ -28,9 +28,11 @@ warnings.filterwarnings('ignore')
 
 # ── Paths ──────────────────────────────────────────────────────────────
 ROOT = Path(__file__).parent.parent
-CSV_PATH = ROOT / "benchmark_results_sota.csv"
-PLOT_PATH = ROOT / "benchmark_plot_sota.png"
-REPORT_PATH = ROOT / "AGD_SOTA_Comparative_Report.docx"
+CSV_PATH = ROOT / "docs" / "reports" / "benchmark_results_sota.csv"
+PLOT_PATH = ROOT / "docs" / "figures" / "benchmark_plot_sota.png"
+REPORT_PATH = ROOT / "docs" / "reports" / "AGD_SOTA_Comparative_Report.docx"
+(ROOT / "docs" / "reports").mkdir(parents=True, exist_ok=True)
+(ROOT / "docs" / "figures").mkdir(parents=True, exist_ok=True)
 
 # ── Load upgraded modules ──────────────────────────────────────────────
 def load_mod(name, rel):
