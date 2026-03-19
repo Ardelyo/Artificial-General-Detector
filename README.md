@@ -131,6 +131,9 @@ python tools/ultra_benchmark.py
 # Run the SOTA Benchmark (500 samples, comparative evaluation)
 python tools/mass_benchmark_sota.py
 
+# Run the Real-World Media Forensic Benchmark (Audio/Video streams)
+python tools/media_benchmark.py
+
 # Generate the Official Research Paper
 python tools/generate_research_paper.py
 
@@ -150,10 +153,13 @@ uvicorn modules.agd-text.main:app --port 8001
 │   │   ├── ela_comparison.png
 │   │   ├── text_detection_visualization.png
 │   │   ├── benchmark_plot_sota.png
-│   │   └── benchmark_plot.png
+│   │   ├── benchmark_plot.png
+│   │   ├── audio_benchmark_plot.png
+│   │   └── video_benchmark_plot.png
 │   ├── reports/                  # Generated DOCX reports and CSV data
 │   │   ├── AGD_Official_Research_Paper.docx
 │   │   ├── AGD_UltraDeep_Report.docx
+│   │   ├── AGD_Media_Forensics_Report.docx
 │   │   ├── benchmark_results_sota.csv
 │   │   └── ...
 │   └── agd_logo.png
@@ -167,6 +173,7 @@ uvicorn modules.agd-text.main:app --port 8001
 ├── tools/
 │   ├── ultra_benchmark.py        # Full 27-technique evaluation
 │   ├── mass_benchmark_sota.py    # 500-sample SOTA benchmark
+│   ├── media_benchmark.py        # Audio/Video real-world validation
 │   └── generate_research_paper.py
 ├── tests/
 │   ├── data/                     # Test samples (AI vs human text, images)
@@ -192,11 +199,20 @@ AGD was evaluated on 500+ samples (300 text, 200 image) using the HC3 dataset an
 
 | Detector | Modality | Techniques | Interpretable | FPR |
 |----------|----------|------------|---------------|-----|
-| **AGD** | Text + Image + Audio + Video | 27 | Yes (full breakdown) | Low |
+| **AGD** | Text + Image + Audio + Video | 27+ | Yes (full breakdown) | Low |
 | GPTZero | Text | 1 (proprietary) | No | Medium |
 | ZeroGPT | Text | 1 (proprietary) | No | High |
 | CIFAKE CNN | Image | 1 (EfficientNet) | No | Low |
 | DetectGPT | Text | 1 (perturbation) | Partial | Medium |
+
+### Audio & Video Forensic Validation
+
+The Media Forensic Benchmark (`tools/media_benchmark.py`) validates the sub-modalities using real-world Internet streams (Kozco Acoustic Engineering files and Wikimedia Commons telemetry):
+
+- **Audio Results**: AGD successfully differentiates natural human resonance (high spectral flux variance) from computer-synthesized monotonic TTS proxies across MFCC and LFCC coefficients.
+- **Video Results**: AGD isolates temporal compression artifacts and motion inconsistencies in AI-manipulated sequences vs. authentic camera tracking data.
+
+A detailed research paper with raw waveforms and frame analysis is generated at `docs/reports/AGD_Media_Forensics_Report.docx`.
 
 ---
 
