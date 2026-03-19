@@ -46,7 +46,7 @@ async def analyze_text(text: str = Form(...)):
     # Simulate calling the text module
     # In a real app we would use httpx.post("http://agd-text:8004/analyze"...)
     
-    score = round(random.uniform(0.1, 0.9), 2)
+    score = round(random.uniform(0.1, 0.9), 2)  # type: ignore
     
     return {
         "job_id": job_id,
@@ -58,8 +58,8 @@ async def analyze_text(text: str = Form(...)):
             "text": {
                 "score": score,
                 "breakdown": {
-                    "perplexity": round(score * 1.1, 2) % 1,
-                    "burstiness": round(score * 0.8, 2),
+                    "perplexity": round(float(score * 1.1), 2) % 1,  # type: ignore
+                    "burstiness": round(float(score * 0.8), 2),  # type: ignore
                     "n_gram_distribution": score
                 }
             }
@@ -86,10 +86,10 @@ async def analyze_file(file: UploadFile = File(...)):
         results["image"] = {
             "score": score,
             "breakdown": {
-                "frequency_analysis": round(score * 0.9, 2),
-                "pixel_level": round(score * 1.1, 2) % 1,
+                "frequency_analysis": round(float(score * 0.9), 2),  # type: ignore
+                "pixel_level": round(float(score * 1.1), 2) % 1,  # type: ignore
                 "cnn_features": score,
-                "metadata_inconsistency": round(random.uniform(0.1, 0.9), 2)
+                "metadata_inconsistency": round(float(random.uniform(0.1, 0.9)), 2)  # type: ignore
             }
         }
     elif "video" in mime:

@@ -15,8 +15,11 @@ REPORT = ROOT / "AGD_UltraDeep_Report.docx"
 # Load deep forensic engines
 def load_mod(name, path):
     spec = importlib.util.spec_from_file_location(name, ROOT / path)
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+    if spec is None or spec.loader is None:
+        print(f"Error: Could not find module spec or loader for {name} at {path}")
+        sys.exit(1)
+    m = importlib.util.module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(m)  # type: ignore
     return m
 
 print("[System] Loading deep forensic engines...")
@@ -137,9 +140,13 @@ print(f"{'='*60}")
 
 # ── Generate DOCX ─────────────────────────────────────────────────
 
-from docx import Document
-from docx.shared import Inches, Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+try:
+    from docx import Document # type: ignore
+    from docx.shared import Inches, Pt # type: ignore
+    from docx.enum.text import WD_ALIGN_PARAGRAPH # type: ignore
+except ImportError:
+    print("[Error] python-docx not installed. Skipping DOCX generation.")
+    sys.exit(1)
 
 doc = Document()
 doc.add_heading("AGD Ultra-Deep Forensic Analysis Report", 0)

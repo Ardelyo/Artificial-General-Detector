@@ -4,9 +4,21 @@ import importlib.util
 
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    if spec is None or spec.loader is None:
+        print(f"Error: Could not find module spec or loader for {name} at {path}")
+        sys.exit(1)
+    mod = importlib.util.module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(mod)  # type: ignore
     return mod
+
+# Load deep_image_forensics module with checks
+spec = importlib.util.find_spec("modules.deep_image_forensics")
+if spec is None or spec.loader is None:
+    print("Error: Could not find modules.deep_image_forensics or loader")
+    sys.exit(1)
+module = importlib.util.module_from_spec(spec)  # type: ignore
+spec.loader.exec_module(module)  # type: ignore
+deep_image = module
 
 image_module = load_module("image_main", os.path.abspath("modules/agd-image/main.py"))
 text_module = load_module("text_main", os.path.abspath("modules/agd-text/main.py"))
@@ -37,8 +49,8 @@ def test_text(filepath, label):
     entropy = text_module.compute_entropy(text_content)
     
     # Replicating the internal module logic for the console report
-    cv_ai_score = max(0, 1.0 - (cv / 0.6))
-    entropy_ai_score = max(0, 1.0 - (entropy / 9.0))
+    cv_ai_score = max(0.0, 1.0 - (cv / 0.6))  # type: ignore
+    entropy_ai_score = max(0.0, 1.0 - (entropy / 9.0))  # type: ignore
     master_score = (cv_ai_score * 0.6) + (entropy_ai_score * 0.4)
     master_score = min(max(master_score, 0.0), 1.0)
 

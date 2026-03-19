@@ -59,10 +59,10 @@ def pixel_ela_heatmap(image_bytes, quality=90):
     score = max(0, 1.0 - (global_std / 8.0))
     return {
         "score": min(score, 1.0),
-        "global_mean": round(global_mean, 4),
-        "global_std": round(global_std, 4),
-        "max_diff": round(max_diff, 4),
-        "suspicious_pixel_ratio": round(suspicious_ratio, 4),
+        "global_mean": float(round(float(global_mean), 4)),
+        "global_std": float(round(float(global_std), 4)),
+        "max_diff": float(round(float(max_diff), 4)),
+        "suspicious_pixel_ratio": float(round(float(suspicious_ratio), 4)),
         "resolution": f"{w}x{h}",
     }
 
@@ -90,13 +90,13 @@ def jpeg_ghost_detection(image_bytes, quality_range=(60, 95, 5)):
 
     # AI generated PNGs show uniform ghost profile; JPEGs show a dip
     uniformity = float(np.std([s[1] for s in ghost_scores]) / (np.mean([s[1] for s in ghost_scores]) + 1e-6))
-    score = max(0, 1.0 - uniformity * 2)
+    score = max(0.0, 1.0 - uniformity * 2)
 
     return {
-        "score": min(score, 1.0),
+        "score": min(float(score), 1.0),
         "estimated_quality": min_q,
         "ghost_curve": ghost_scores,
-        "curve_uniformity": round(uniformity, 4),
+        "curve_uniformity": float(round(float(uniformity), 4)),
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -124,7 +124,7 @@ def srm_multi_kernel(image_bytes):
         residual = np.zeros_like(arr)
         for i in range(arr.shape[0]):
             for j in range(arr.shape[1]):
-                patch = padded[i:i+kh, j:j+kw]
+                patch = padded[i:i+kh, j:j+kw]  # type: ignore
                 if patch.shape == kernel.shape:
                     residual[i, j] = np.sum(patch * kernel)
 
@@ -133,17 +133,18 @@ def srm_multi_kernel(image_bytes):
         skew = float(np.mean((residual - np.mean(residual))**3) / (std**3 + 1e-10))
 
         # AI: lower std (cleaner), higher kurtosis (leptokurtic)
-        s = max(0, 1.0 - (std / 12.0))
+        s = max(0.0, 1.0 - (std / 12.0))
         scores.append(s)
         results[name] = {
-            "residual_std": round(std, 4),
-            "residual_kurtosis": round(kurt, 4),
-            "residual_skewness": round(skew, 4),
-            "sub_score": round(s, 4)
+            "residual_std": float(round(float(std), 4)),
+            "residual_std": float(round(float(std), 4)), # type: ignore
+            "residual_kurtosis": float(round(float(kurt), 4)), # type: ignore
+            "residual_skewness": float(round(float(skew), 4)), # type: ignore
+            "sub_score": float(round(float(s), 4)) # type: ignore
         }
 
     return {
-        "score": round(float(np.mean(scores)), 4),
+        "score": float(round(float(np.mean(scores)), 4)), # type: ignore
         "kernels": results,
     }
 
@@ -176,12 +177,12 @@ def dct_blockwise(image_bytes, block_size=8):
     cv = float(np.std(be) / (np.mean(be) + 1e-10))
 
     # AI images: more uniform block energy (low CV)
-    score = max(0, 1.0 - (cv / 1.5))
+    score = max(0.0, 1.0 - (cv / 1.5)) # type: ignore
     return {
-        "score": round(min(score, 1.0), 4),
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
         "n_blocks": len(block_energies),
-        "mean_block_energy": round(float(np.mean(be)), 2),
-        "block_energy_cv": round(cv, 4),
+        "mean_block_energy": float(round(float(np.mean(be)), 2)), # type: ignore
+        "block_energy_cv": float(round(float(cv), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -226,9 +227,10 @@ def fft_radial_spectrum(image_bytes):
         score = 0.15
 
     return {
-        "score": round(score, 4),
+        "score": float(round(float(score), 4)), # type: ignore
         "spectral_spikes": spike_count,
-        "rolloff_rate": round(rolloff_rate, 4),
+        "spectral_spikes": spike_count,
+        "rolloff_rate": float(round(float(rolloff_rate), 4)), # type: ignore
         "n_radial_bins": len(radial_profile),
     }
 
@@ -258,7 +260,7 @@ def hf_energy_ratio(image_bytes):
     else:
         score = 0.1
 
-    return {"score": round(score, 4), "hf_ratio": round(ratio, 4)}
+    return {"score": float(round(float(score), 4)), "hf_ratio": float(round(float(ratio), 4))} # type: ignore
 
 # ═══════════════════════════════════════════════════════════════════
 #  7. COLOR COHERENCE & CHANNEL CORRELATION
@@ -277,7 +279,7 @@ def color_coherence(image_bytes):
     avg_corr = (abs(rg_corr) + abs(rb_corr) + abs(gb_corr)) / 3
 
     # AI images often have HIGHER inter-channel correlation (less independent noise)
-    score = max(0, (avg_corr - 0.5) / 0.5)
+    score = max(0.0, (avg_corr - 0.5) / 0.5) # type: ignore
 
     # Color histogram entropy per channel
     entropies = []
@@ -288,16 +290,16 @@ def color_coherence(image_bytes):
         entropies.append(ent)
 
     avg_ent = float(np.mean(entropies))
-    ent_score = max(0, (avg_ent - 4.0) / 2.0)  # High uniformity → AI
+    ent_score = max(0.0, (avg_ent - 4.0) / 2.0) # type: ignore
 
     combined = score * 0.6 + ent_score * 0.4
 
     return {
-        "score": round(min(combined, 1.0), 4),
-        "rg_correlation": round(rg_corr, 4),
-        "rb_correlation": round(rb_corr, 4),
-        "gb_correlation": round(gb_corr, 4),
-        "channel_entropy_avg": round(avg_ent, 4),
+        "score": float(round(min(float(combined), 1.0), 4)), # type: ignore
+        "rg_correlation": float(round(float(rg_corr), 4)), # type: ignore
+        "rb_correlation": float(round(float(rb_corr), 4)), # type: ignore
+        "gb_correlation": float(round(float(gb_corr), 4)), # type: ignore
+        "channel_entropy_avg": float(round(float(avg_ent), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -318,8 +320,8 @@ def edge_sharpness(image_bytes):
     gy = np.zeros_like(arr)
     for i in range(arr.shape[0]):
         for j in range(arr.shape[1]):
-            gx[i, j] = np.sum(padded[i:i+3, j:j+3] * kx)
-            gy[i, j] = np.sum(padded[i:i+3, j:j+3] * ky)
+            gx[i, j] = np.sum(padded[i:i+3, j:j+3] * kx) # type: ignore
+            gy[i, j] = np.sum(padded[i:i+3, j:j+3] * ky) # type: ignore
 
     magnitude = np.sqrt(gx**2 + gy**2)
     mean_edge = float(np.mean(magnitude))
@@ -329,17 +331,17 @@ def edge_sharpness(image_bytes):
 
     # AI: overly uniform edges (low CV) or oversharpened (high mean)
     if edge_cv < 1.0:
-        score = max(0, 1.0 - edge_cv)
+        score = max(0.0, 1.0 - edge_cv) # type: ignore
     elif mean_edge > 100:
         score = min((mean_edge - 100) / 200, 1.0)
     else:
         score = 0.1
 
     return {
-        "score": round(score, 4),
-        "mean_edge_magnitude": round(mean_edge, 2),
-        "edge_cv": round(edge_cv, 4),
-        "max_edge": round(max_edge, 2),
+        "score": float(round(float(score), 4)), # type: ignore
+        "mean_edge_magnitude": float(round(float(mean_edge), 2)), # type: ignore
+        "edge_cv": float(round(float(edge_cv), 4)), # type: ignore
+        "max_edge": float(round(float(max_edge), 2)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -370,13 +372,13 @@ def noise_floor_variance(image_bytes, patch_size=16):
     var_cv = float(np.std(var_arr) / (np.mean(var_arr) + 1e-10))
 
     # AI: uniform noise floor (low CV), Real: variable (sensor, compression)
-    score = max(0, 1.0 - (var_cv / 2.0))
+    score = max(0.0, 1.0 - (var_cv / 2.0)) # type: ignore
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "noise_variance_cv": round(var_cv, 4),
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
+        "noise_variance_cv": float(round(float(var_cv), 4)), # type: ignore
         "n_patches": len(variances),
-        "mean_noise_var": round(float(np.mean(var_arr)), 6),
+        "mean_noise_var": float(round(float(np.mean(var_arr)), 6)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -402,12 +404,12 @@ def patch_grid_homogeneity(image_bytes, grid=8):
     std_cv = float(np.std(patch_stds) / (np.mean(patch_stds) + 1e-10))
 
     # AI: more homogeneous patches
-    score = max(0, 1.0 - (mean_cv / 0.5)) * 0.5 + max(0, 1.0 - (std_cv / 1.0)) * 0.5
+    score = max(0.0, 1.0 - (mean_cv / 0.5)) * 0.5 + max(0.0, 1.0 - (std_cv / 1.0)) * 0.5 # type: ignore
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "mean_cv": round(mean_cv, 4),
-        "std_cv": round(std_cv, 4),
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
+        "mean_cv": float(round(float(mean_cv), 4)), # type: ignore
+        "std_cv": float(round(float(std_cv), 4)), # type: ignore
         "grid_size": f"{grid}x{grid}",
     }
 
@@ -436,12 +438,12 @@ def chromatic_aberration(image_bytes):
     # Real photos: higher chromatic aberration (larger differences)
     # AI: perfectly aligned channels → low aberration
     combined = (rb_diff + rg_diff) / 2
-    score = max(0, 1.0 - (combined / 5.0))  # Low aberration → AI
-
+    # Score: higher error → AI-like processing
+    score = min(combined / 5.0, 1.0) # type: ignore
     return {
-        "score": round(min(score, 1.0), 4),
-        "rb_edge_diff": round(rb_diff, 4),
-        "rg_edge_diff": round(rg_diff, 4),
+        "score": float(round(float(score), 4)), # type: ignore
+        "rb_edge_diff": float(round(float(rb_diff), 4)), # type: ignore
+        "rg_edge_diff": float(round(float(rg_diff), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -455,12 +457,14 @@ def bit_plane_analysis(image_bytes):
 
     bit_planes = {}
     scores = []
+    entropies = [] # Added to collect entropies for avg_entropy
     for bit in range(8):
         plane = (arr >> bit) & 1
         # Entropy of bit plane
         ones = float(np.mean(plane))
-        ent = -(ones * np.log2(ones + 1e-10) + (1 - ones) * np.log2(1 - ones + 1e-10))
-        bit_planes[f"bit_{bit}"] = {"entropy": round(ent, 4), "ones_ratio": round(ones, 4)}
+        ent = float(-(ones * np.log2(ones + 1e-10) + (1 - ones) * np.log2(1 - ones + 1e-10)))
+        bit_planes[f"bit_{bit}"] = {"entropy": float(round(float(ent), 4)), "ones_ratio": float(round(float(ones), 4))} # type: ignore
+        entropies.append(ent) # Collect entropy
 
         # LSBs (bit 0, 1) should be near-random in real images
         if bit < 2:
@@ -469,10 +473,15 @@ def bit_plane_analysis(image_bytes):
             scores.append(regularity * 4)
 
     avg_score = float(np.mean(scores)) if scores else 0.5
+    avg_entropy = float(np.mean(entropies)) # Calculate average entropy
 
+    # AI: lower texture diversity → lower entropy
+    # AI: overly uniform bit patterns
+    score = max(0.0, 1.0 - (avg_entropy / 0.5)) # type: ignore
     return {
-        "score": round(min(avg_score, 1.0), 4),
-        "planes": bit_planes,
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
+        "lsb_entropy": float(round(float(avg_entropy), 4)), # type: ignore
+        "entropy_by_channel": [float(round(float(e), 4)) for e in entropies], # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -497,17 +506,17 @@ def histogram_gaps(image_bytes):
     for h in hist:
         if h == 0:
             consecutive_zeros += 1
-            max_consecutive = max(max_consecutive, consecutive_zeros)
+            max_consecutive = max(max_consecutive, consecutive_zeros) # type: ignore
         else:
             consecutive_zeros = 0
 
-    score = min(max_consecutive / 10.0, 1.0) if max_consecutive > 3 else gap_ratio
+    score = min(max_consecutive / 10.0, 1.0) if max_consecutive > 3 else gap_ratio # type: ignore
 
     return {
-        "score": round(score, 4),
+        "score": float(round(float(score), 4)), # type: ignore
         "zero_bins": zero_bins,
         "max_consecutive_gaps": max_consecutive,
-        "gap_ratio": round(gap_ratio, 4),
+        "gap_ratio": float(round(float(gap_ratio), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -543,12 +552,12 @@ def texture_complexity(image_bytes):
 
     # AI: lower texture diversity → lower entropy
     diversity = ent / max_ent
-    score = max(0, 1.0 - diversity)
+    score = max(0.0, 1.0 - diversity) # type: ignore
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "lbp_entropy": round(ent, 4),
-        "texture_diversity": round(diversity, 4),
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
+        "lbp_entropy": float(round(float(ent), 4)), # type: ignore
+        "texture_diversity": float(round(float(diversity), 4)), # type: ignore
         "unique_patterns": int(np.sum(hist > 0)),
     }
 
@@ -571,20 +580,20 @@ def global_statistics(image_bytes):
         kurt = float(np.mean(((ch - mu) / std) ** 4))
 
         channel_stats[name] = {
-            "mean": round(float(mu), 2),
-            "std": round(float(std), 2),
-            "skewness": round(skew, 4),
-            "kurtosis": round(kurt, 4),
+            "mean": float(round(float(mu), 2)), # type: ignore
+            "std": float(round(float(std), 2)), # type: ignore
+            "skewness": float(round(float(skew), 4)), # type: ignore
+            "kurtosis": float(round(float(kurt), 4)), # type: ignore
         }
 
         # AI images tend toward near-zero skew and kurtosis ~3 (Gaussian)
         skew_deviation = abs(skew)
         kurt_deviation = abs(kurt - 3.0)
-        normalcy = max(0, 1.0 - (skew_deviation + kurt_deviation) / 5.0)
+        normalcy = max(0.0, 1.0 - (skew_deviation + kurt_deviation) / 5.0) # type: ignore
         scores.append(normalcy)
 
     return {
-        "score": round(float(np.mean(scores)), 4),
+        "score": float(round(float(np.mean(scores)), 4)), # type: ignore
         "channels": channel_stats,
     }
 
@@ -640,21 +649,21 @@ def full_image_forensics(image_bytes):
 
     master = sum(techniques[k]["score"] * weights.get(k, 0.05) for k in techniques)
     total_weight = sum(weights.get(k, 0.05) for k in techniques)
-    master = master / max(total_weight, 1e-10)
+    master = master / max(total_weight, 1e-10) # type: ignore
 
     # Confidence: agreement between techniques
     all_scores = [techniques[k]["score"] for k in techniques]
     consensus_std = float(np.std(all_scores))
-    confidence = max(0, 1.0 - consensus_std)
+    confidence = max(0.0, 1.0 - consensus_std) # type: ignore
 
     verdict = "AI-GENERATED" if master > 0.5 else "LIKELY REAL"
     if confidence < 0.4:
         verdict += " (LOW CONFIDENCE)"
 
     return {
-        "master_score": round(float(min(max(master, 0), 1)), 4),
+        "master_score": float(round(float(min(max(float(master), 0.0), 1.0)), 4)), # type: ignore
         "verdict": verdict,
-        "confidence": round(confidence, 4),
+        "confidence": float(round(float(confidence), 4)), # type: ignore
         "n_techniques": len(techniques),
         "techniques": techniques,
     }

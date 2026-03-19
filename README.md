@@ -1,6 +1,7 @@
 # Artificial General Detector (AGD)
+<a href="https://www.producthunt.com/posts/artificial-general-detector?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-artificial-general-detector" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=000000&theme=dark" alt="Artificial General Detector - Ultimate Multi-Modal AI Detection Framework | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-**A multi-modal forensic framework for detecting AI-generated content across text, image, audio, and video.**
+**The ultimate open-source multi-modal forensic framework for identifying AI-generated content across text, image, audio, and video.**
 
 Developed by [OurCreativity](https://github.com/Ardelyo) · Admin: Ardelyo
 

@@ -89,12 +89,12 @@ def token_perplexity_profile(text):
     min_s = float(np.min(scores))
 
     return {
-        "score": round(mean_s, 4),
-        "n_chunks": len(scores),
-        "max_chunk_score": round(max_s, 4),
-        "min_chunk_score": round(min_s, 4),
-        "score_std": round(std_s, 4),
-        "chunks": [round(s, 4) for s in scores[:20]],  # First 20 for brevity
+        "score": float(round(float(mean_s), 4)), # type: ignore
+        "n_chunks": int(len(scores)),
+        "max_chunk_score": float(round(float(max_s), 4)), # type: ignore
+        "min_chunk_score": float(round(float(min_s), 4)), # type: ignore
+        "score_std": float(round(float(std_s), 4)), # type: ignore
+        "chunks": [float(round(float(s), 4)) for s in scores[:20]],  # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -108,10 +108,10 @@ def sentence_level_scoring(text):
         return {"score": 0.5, "n_sentences": len(sents)}
 
     scores = []
-    for s in sents[:30]:  # Cap at 30 sentences for speed
+    for s in sents[:30]:  # type: ignore
         score = _roberta_score(s)
         if score >= 0:
-            scores.append({"sentence": s[:80], "ai_prob": round(score, 4)})
+            scores.append({"sentence": s[:80], "ai_prob": float(round(float(score), 4))}) # type: ignore
 
     if not scores:
         return {"score": 0.5}
@@ -121,10 +121,10 @@ def sentence_level_scoring(text):
     high_ai_ratio = high_ai_count / len(scores)
 
     return {
-        "score": round(avg, 4),
+        "score": float(round(float(avg), 4)), # type: ignore
         "n_scored": len(scores),
-        "high_ai_ratio": round(high_ai_ratio, 4),
-        "sentences": scores[:10],  # Show top-10
+        "high_ai_ratio": float(round(float(high_ai_ratio), 4)), # type: ignore
+        "sentences": scores[:10],  # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -151,12 +151,12 @@ def sliding_window_entropy(text, window=10, stride=5):
     cv_ent = std_ent / (mean_ent + 1e-10)
 
     # AI: uniform entropy (low CV), Human: variable
-    score = max(0, 1.0 - (cv_ent / 0.8))
+    score = max(0.0, 1.0 - (cv_ent / 0.8))
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "mean_entropy": round(mean_ent, 4),
-        "entropy_cv": round(cv_ent, 4),
+        "score": float(round(float(min(float(score), 1.0)), 4)), # type: ignore
+        "mean_entropy": float(round(float(mean_ent), 4)), # type: ignore
+        "entropy_cv": float(round(float(cv_ent), 4)), # type: ignore
         "n_windows": len(entropies),
     }
 
@@ -178,15 +178,15 @@ def burstiness_profile(text):
     kurt = float(np.mean(((la - np.mean(la)) / (np.std(la) + 1e-10)) ** 4))
 
     # AI: low CV (uniform), near-zero skew, kurt ~3
-    score = max(0, 1.0 - (cv / 0.6))
+    score = max(0.0, 1.0 - (cv / 0.6))
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "cv": round(cv, 4),
-        "skewness": round(skew, 4),
-        "kurtosis": round(kurt, 4),
+        "score": float(round(float(min(float(score), 1.0)), 4)), # type: ignore
+        "cv": float(round(float(cv), 4)), # type: ignore
+        "skewness": float(round(float(skew), 4)), # type: ignore
+        "kurtosis": float(round(float(kurt), 4)), # type: ignore
         "n_sentences": len(sents),
-        "mean_length": round(float(np.mean(la)), 1),
+        "mean_length": float(round(float(np.mean(la)), 1)), # type: ignore
         "min_length": int(np.min(la)),
         "max_length": int(np.max(la)),
     }
@@ -212,14 +212,14 @@ def ngram_repetition_heatmap(text):
         rep_ratio = 1.0 - unique / total
         results[f"{n}gram"] = {
             "unique": unique, "total": total,
-            "repetition_ratio": round(rep_ratio, 4)
+            "repetition_ratio": float(round(float(rep_ratio), 4)) # type: ignore
         }
-        scores.append(min(rep_ratio * 3, 1.0))
+        scores.append(min(float(rep_ratio * 3), 1.0))
 
     avg = float(np.mean(scores)) if scores else 0.5
 
     return {
-        "score": round(avg, 4),
+        "score": float(round(float(avg), 4)), # type: ignore
         "grams": results,
     }
 
@@ -250,14 +250,14 @@ def vocabulary_fingerprint(text):
     ttr = len(set(words)) / len(words)
 
     # AI: lower TTR (less diverse), closer to Zipf (more predictable)
-    ttr_score = max(0, 1.0 - (ttr / 0.7))
-    zipf_score = max(0, 1.0 - (deviation / 2.0))
+    ttr_score = max(0.0, 1.0 - (ttr / 0.7))
+    zipf_score = max(0.0, 1.0 - (deviation / 2.0))
     combined = ttr_score * 0.5 + zipf_score * 0.5
 
     return {
-        "score": round(min(combined, 1.0), 4),
-        "type_token_ratio": round(ttr, 4),
-        "zipf_deviation": round(deviation, 4),
+        "score": float(round(float(min(float(combined), 1.0)), 4)), # type: ignore
+        "type_token_ratio": float(round(float(ttr), 4)), # type: ignore
+        "zipf_deviation": float(round(float(deviation), 4)), # type: ignore
         "vocab_size": len(set(words)),
         "total_words": len(words),
     }
@@ -291,18 +291,18 @@ def stylometric_features(text):
     digit_ratio = digit_count / max(len(chars), 1)
 
     # AI text: avg word len ~4.5-5.5, very regular punct, low digit ratio
-    word_len_score = max(0, 1.0 - abs(avg_word_len - 5.0) / 2.0)
-    punct_score = max(0, 1.0 - abs(punct_density - 0.06) / 0.04) if punct_density < 0.10 else 0.3
+    word_len_score = max(0.0, 1.0 - abs(avg_word_len - 5.0) / 2.0)
+    punct_score = max(0.0, 1.0 - abs(punct_density - 0.06) / 0.04) if punct_density < 0.10 else 0.3
 
     combined = word_len_score * 0.5 + punct_score * 0.5
 
     return {
-        "score": round(min(combined, 1.0), 4),
-        "avg_word_length": round(avg_word_len, 2),
-        "avg_sentence_length": round(avg_sent_len, 1),
-        "punctuation_density": round(punct_density, 4),
-        "uppercase_ratio": round(upper_ratio, 4),
-        "digit_ratio": round(digit_ratio, 4),
+        "score": float(round(float(min(float(combined), 1.0)), 4)), # type: ignore
+        "avg_word_length": float(round(float(avg_word_len), 2)), # type: ignore
+        "avg_sentence_length": float(round(float(avg_sent_len), 1)), # type: ignore
+        "punctuation_density": float(round(float(punct_density), 4)), # type: ignore
+        "uppercase_ratio": float(round(float(upper_ratio), 4)), # type: ignore
+        "digit_ratio": float(round(float(digit_ratio), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -321,9 +321,9 @@ def perplexity_proxy(text):
         return {"score": 0.5}
 
     zipf_dev = float(np.std(sorted_c / np.arange(1, len(sorted_c) + 1)))
-    score = min(max(zipf_dev / 5.0, 0), 1.0)
+    score = min(max(zipf_dev / 5.0, 0.0), 1.0)
 
-    return {"score": round(score, 4), "zipf_std": round(zipf_dev, 4)}
+    return {"score": float(round(float(score), 4)), "zipf_std": float(round(float(zipf_dev), 4))} # type: ignore
 
 # ═══════════════════════════════════════════════════════════════════
 #  9. POSITIONAL ENTROPY (thirds)
@@ -348,12 +348,12 @@ def positional_entropy(text):
     ent_cv = float(np.std(entropies) / (np.mean(entropies) + 1e-10))
 
     # AI: uniform entropy across positions; Human: variable
-    score = max(0, 1.0 - (ent_cv / 0.3))
+    score = max(0.0, 1.0 - (ent_cv / 0.3))
 
     return {
-        "score": round(min(score, 1.0), 4),
-        "section_entropies": [round(e, 4) for e in entropies],
-        "entropy_cv": round(ent_cv, 4),
+        "score": float(round(min(float(score), 1.0), 4)), # type: ignore
+        "section_entropies": [float(round(float(e), 4)) for e in entropies], # type: ignore
+        "entropy_cv": float(round(float(ent_cv), 4)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -388,15 +388,15 @@ def function_word_analysis(text):
     # High formal marker ratio → AI
     fm_score = min(formal_ratio * 50, 1.0)
     # Overly high function word ratio → AI
-    fw_score = max(0, (fw_ratio - 0.35) / 0.15) if fw_ratio > 0.35 else 0
+    fw_score = max(0.0, (fw_ratio - 0.35) / 0.15) if fw_ratio > 0.35 else 0.0
 
     combined = fm_score * 0.6 + fw_score * 0.4
 
     return {
-        "score": round(min(combined, 1.0), 4),
-        "function_word_ratio": round(fw_ratio, 4),
+        "score": float(round(float(min(float(combined), 1.0)), 4)), # type: ignore
+        "function_word_ratio": float(round(float(fw_ratio), 4)), # type: ignore
         "formal_marker_count": formal_count,
-        "formal_marker_ratio": round(formal_ratio, 6),
+        "formal_marker_ratio": float(round(float(formal_ratio), 6)), # type: ignore
     }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -430,9 +430,9 @@ def transition_density(text):
     score = min(density / 3.0, 1.0)
 
     return {
-        "score": round(score, 4),
+        "score": float(round(float(score), 4)), # type: ignore
         "total_transitions": hits,
-        "density_per_100w": round(density, 4),
+        "density_per_100w": float(round(float(density), 4)), # type: ignore
         "found_phrases": found[:10],
     }
 
@@ -452,10 +452,10 @@ def sentence_starter_diversity(text):
     diversity = unique / total
 
     # Low diversity → AI (e.g., "The... The... The... It... It...")
-    score = max(0, 1.0 - (diversity / 0.7))
+    score = max(0.0, 1.0 - (diversity / 0.7))
 
     # Check for common AI patterns
-    starter_counts = {}
+    starter_counts: dict[str, int] = {}
     for s in starters:
         starter_counts[s] = starter_counts.get(s, 0) + 1
 
@@ -463,9 +463,9 @@ def sentence_starter_diversity(text):
     repetition = most_common / total
 
     return {
-        "score": round(min(max(score, repetition), 1.0), 4),
-        "starter_diversity": round(diversity, 4),
-        "most_repeated_ratio": round(repetition, 4),
+        "score": float(round(float(min(max(float(score), float(repetition)), 1.0)), 4)), # type: ignore
+        "starter_diversity": float(round(float(diversity), 4)), # type: ignore
+        "most_repeated_ratio": float(round(float(repetition), 4)), # type: ignore
         "unique_starters": unique,
         "total_sentences": total,
     }
@@ -519,16 +519,16 @@ def full_text_forensics(text):
 
     all_scores = [techniques[k]["score"] for k in techniques]
     consensus_std = float(np.std(all_scores))
-    confidence = max(0, 1.0 - consensus_std)
+    confidence = max(0.0, 1.0 - consensus_std)
 
     verdict = "AI-GENERATED" if master > 0.5 else "LIKELY HUMAN"
     if confidence < 0.4:
         verdict += " (LOW CONFIDENCE)"
 
     return {
-        "master_score": round(float(min(max(master, 0), 1)), 4),
+        "master_score": float(round(float(min(max(float(master), 0.0), 1.0)), 4)), # type: ignore
         "verdict": verdict,
-        "confidence": round(confidence, 4),
+        "confidence": float(round(float(confidence), 4)), # type: ignore
         "n_techniques": len(techniques),
         "techniques": techniques,
     }

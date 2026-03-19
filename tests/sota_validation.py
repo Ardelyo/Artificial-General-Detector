@@ -5,8 +5,11 @@ import sys, os, importlib.util, time
 
 def load_mod(name, path):
     spec = importlib.util.spec_from_file_location(name, os.path.abspath(path))
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+    if spec is None or spec.loader is None:
+        print(f"Error: Could not find module spec or loader for {name} at {path}")
+        sys.exit(1)
+    m = importlib.util.module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(m)  # type: ignore
     return m
 
 print("=" * 60)
@@ -58,7 +61,7 @@ for f in sorted(os.listdir(artifacts_dir), reverse=True):
         ai_img_path = os.path.join(artifacts_dir, f)
         break
 
-if ai_img_path:
+if ai_img_path and os.path.exists(str(ai_img_path)):  # type: ignore
     with open(ai_img_path, "rb") as f:
         ai_bytes = f.read()
     avg, ela = img.compute_ela_baseline(ai_bytes)
@@ -67,6 +70,8 @@ if ai_img_path:
     un, cs = img.compute_color_uniformity(ai_bytes)
     print(f"\n[IMAGE] AI-generated:")
     print(f"  ELA: {ela:.4f} | Frequency: {fs:.4f} | SRM: {ss:.4f} | Color: {cs:.4f}")
+else:
+    print("\n[IMAGE] AI-generated sample not found.")
 
 if os.path.exists("tests/real_test_photo.png"):
     with open("tests/real_test_photo.png", "rb") as f:

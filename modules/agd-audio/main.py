@@ -216,10 +216,10 @@ def score_cepstral(coefficients):
     else:
         high_low_ratio = 1.0
 
-    score = max(0, 1.0 - (avg_std / 5.0))
+    score = max(0.0, 1.0 - (avg_std / 5.0))
     return float(min(score, 1.0)), {
-        "avg_coeff_std": round(avg_std, 4),
-        "high_low_ratio": round(high_low_ratio, 4)
+        "avg_coeff_std": float(round(float(avg_std), 4)),
+        "high_low_ratio": float(round(float(high_low_ratio), 4))
     }
 
 # ── API ────────────────────────────────────────────────────────────
@@ -250,15 +250,15 @@ async def analyze_audio(file: UploadFile = File(...)):
               zcr_score * 0.15)
 
     return {
-        "score": round(float(min(max(master, 0), 1)), 4),
+        "score": float(round(float(master), 4)),  # type: ignore
         "breakdown": {
-            "mfcc_score": round(mfcc_score, 4),
-            "lfcc_score": round(lfcc_score, 4),
-            "spectral_flux_score": round(flux_score, 4),
-            "zcr_score": round(zcr_score, 4),
-            "raw_flux_cv": round(flux_cv, 4),
-            "raw_zcr_std": round(zcr_std, 4),
-            **{f"mfcc_{k}": v for k, v in mfcc_detail.items()},
-            **{f"lfcc_{k}": v for k, v in lfcc_detail.items()},
+            "mfcc_score": float(round(float(mfcc_score), 4)),  # type: ignore
+            "lfcc_score": float(round(float(lfcc_score), 4)),  # type: ignore
+            "spectral_flux_score": float(round(float(flux_score), 4)),  # type: ignore
+            "zcr_score": float(round(float(zcr_score), 4)),  # type: ignore
+            "raw_flux_cv": float(round(float(flux_cv), 4)),  # type: ignore
+            "raw_zcr_std": float(round(float(zcr_std), 4)),  # type: ignore
+            **{f"mfcc_{k}": float(round(float(v), 4)) if isinstance(v, (int, float)) else v for k, v in mfcc_detail.items()},  # type: ignore
+            **{f"lfcc_{k}": float(round(float(v), 4)) if isinstance(v, (int, float)) else v for k, v in lfcc_detail.items()},  # type: ignore
         }
     }

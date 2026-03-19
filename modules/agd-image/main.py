@@ -35,7 +35,7 @@ def compute_ela_baseline(image_bytes: bytes, quality=90):
         diff = np.abs(np.array(original).astype(np.float32) -
                       np.array(compressed).astype(np.float32))
         avg_diff = float(np.mean(diff))
-        normalized = min(max((avg_diff - 1.0) / 5.0, 0.0), 1.0)
+        normalized = min(max(float((avg_diff - 1.0) / 5.0), 0.0), 1.0)
         return avg_diff, normalized
     except:
         return 0.0, 0.5
@@ -97,8 +97,8 @@ def compute_srm_score(image_bytes: bytes):
         # AI images have LOWER noise residual variance (cleaner)
         # Real photos have higher noise (sensor noise, compression artifacts)
         # Kurtosis: AI images tend toward lower kurtosis (more Gaussian noise)
-        std_score = max(0, 1.0 - (residual_std / 15.0))  # Low std → AI
-        kurt_score = max(0, 1.0 - (residual_kurtosis / 10.0))
+        std_score = max(0.0, float(1.0 - (residual_std / 15.0)))  # Low std → AI
+        kurt_score = max(0.0, float(1.0 - (residual_kurtosis / 10.0)))
 
         combined = std_score * 0.6 + kurt_score * 0.4
         return residual_std, residual_kurtosis, float(min(max(combined, 0), 1))
@@ -122,7 +122,7 @@ def compute_color_uniformity(image_bytes: bytes):
             scores.append(ent / max_ent)
         uniformity = float(np.mean(scores))
         # Very high uniformity → possibly AI
-        score = max(0, (uniformity - 0.7) / 0.3)
+        score = max(0.0, float((uniformity - 0.7) / 0.3))
         return uniformity, float(min(score, 1.0))
     except:
         return 0.0, 0.5
@@ -145,15 +145,15 @@ async def analyze_image(file: UploadFile = File(...)):
               color_score * 0.20)
 
     return {
-        "score": round(float(min(max(master, 0), 1)), 4),
+        "score": round(float(min(max(float(master), 0.0), 1.0)), 4),  # type: ignore
         "breakdown": {
-            "error_level_analysis": round(ela_score, 4),
-            "frequency_domain": round(freq_score, 4),
-            "srm_noise_residual": round(srm_score, 4),
-            "color_uniformity": round(color_score, 4),
-            "raw_ela_diff": round(avg_diff, 4),
-            "raw_freq_ratio": round(freq_ratio, 4),
-            "raw_residual_std": round(res_std, 4),
-            "raw_residual_kurtosis": round(res_kurt, 4),
+            "error_level_analysis": round(float(ela_score), 4),  # type: ignore
+            "frequency_domain": round(float(freq_score), 4),  # type: ignore
+            "srm_noise_residual": round(float(srm_score), 4),  # type: ignore
+            "color_uniformity": round(float(color_score), 4),  # type: ignore
+            "raw_ela_diff": round(float(avg_diff), 4),  # type: ignore
+            "raw_freq_ratio": round(float(freq_score), 4),  # type: ignore
+            "raw_residual_std": round(float(res_std), 4),  # type: ignore
+            "raw_residual_kurtosis": round(float(res_kurt), 4),  # type: ignore
         }
     }

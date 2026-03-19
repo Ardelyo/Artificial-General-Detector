@@ -183,16 +183,16 @@ async def analyze_video(file: UploadFile = File(...)):
               color_score * 0.20)
 
     return {
-        "score": round(float(min(max(master, 0), 1)), 4),
+        "score": float(round(float(master), 4)),  # type: ignore
         "breakdown": {
-            "frame_diff_energy": round(diff_score, 4),
-            "motion_consistency": round(flow_score, 4),
-            "frequency_consistency": round(freq_score, 4),
-            "color_stability": round(color_score, 4),
-            "raw_diff_cv": round(diff_cv, 4),
-            "raw_flow_std": round(flow_std, 4),
-            "raw_freq_cv": round(freq_cv, 4),
-            "raw_color_diff": round(color_diff, 4),
+            "temporal_difference_score": float(round(float(diff_score), 4)),  # type: ignore
+            "motion_consistency_score": float(round(float(flow_score), 4)),  # type: ignore
+            "frequency_consistency_score": float(round(float(freq_score), 4)),  # type: ignore
+            "color_stability_score": float(round(float(color_score), 4)),  # type: ignore
+            "raw_diff_cv": float(round(float(diff_cv), 4)),  # type: ignore
+            "raw_flow_std": float(round(float(flow_std), 4)),  # type: ignore
+            "raw_freq_cv": float(round(float(freq_cv), 4)),  # type: ignore
+            "raw_color_diff": float(round(float(color_diff), 4)),  # type: ignore
             "n_frames_analyzed": len(frames),
         }
     }
